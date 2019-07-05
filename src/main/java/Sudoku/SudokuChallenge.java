@@ -13,10 +13,16 @@ public class SudokuChallenge implements Serializable {
     private String _game_name;
 
     /**
-     * A map containing the peers connected to the sudoku
-     * Key: PeerAddress and Value: _game_name
+     * A map that contains the peers connected to the sudoku
+     * Key: PeerAddress and Value: nickname
      */
     private HashMap<PeerAddress, String> peersInGame = new HashMap<PeerAddress, String>();
+
+    /**
+     * A map that contains the peer score
+     * Key: nickname and Value: score
+     */
+    private HashMap<String, Integer> peerScore = new HashMap<String, Integer>();
 
     public SudokuChallenge(String _game_name, String difficulty) throws IOException, ParseException {
         this._game_name = _game_name;
@@ -27,14 +33,30 @@ public class SudokuChallenge implements Serializable {
     /**
      *  The method adds a user into the game
      */
-    public Boolean addIntoGame(PeerAddress peerAddress, String _game_name)
+    public boolean addIntoGame(PeerAddress peerAddress, String nickname)
     {
         for(PeerAddress peer : peersInGame.keySet())
             if(peer.equals(peerAddress))
                 return false;
 
-        peersInGame.put(peerAddress, _game_name);
+        peersInGame.put(peerAddress, nickname);
+        peerScore.put(nickname, 0);
         return true;
+    }
+
+    /**
+     *  The method remove the user into the game
+     */
+    public boolean removeIntoGame(PeerAddress peerAddress, String nickname)
+    {
+        for(PeerAddress peer : peersInGame.keySet())
+            if(peer.equals(peerAddress)){
+                peersInGame.remove(peer);
+                peerScore.remove(nickname);
+                return true;
+            }
+
+        return false;
     }
 
     /**
@@ -59,7 +81,7 @@ public class SudokuChallenge implements Serializable {
 
         for(int rows=0; rows<9; rows++)
             for(int columns=0; columns<9; columns++)
-                if(unsolved[rows][columns] != solved[rows][columns])
+                if (!(unsolved[rows][columns].equals(solved[rows][columns])))
                     return false;
 
         return true;
@@ -77,6 +99,19 @@ public class SudokuChallenge implements Serializable {
     }
 
     /**
+     * Method that returns the suggestion
+     */
+    public int help(int row, int column){
+        int n = 0;
+        Integer[][] unsolved = sudoku.getMatrixUnsolved();
+        Integer[][] solved = sudoku.getMatrixSolved();
+        if(unsolved[row][column] == 0)
+            n += solved[row][column];
+
+        return n;
+    }
+
+    /**
      * Getter Methods
      */
     public Sudoku getSudoku() {
@@ -90,4 +125,9 @@ public class SudokuChallenge implements Serializable {
     public HashMap<PeerAddress, String> getPeersInGame(){
         return peersInGame;
     }
+
+    public HashMap<String, Integer> getPeerScore(){
+        return peerScore;
+    }
+
 }
